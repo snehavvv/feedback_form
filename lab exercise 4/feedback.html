@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Feedback Collection</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+
+  <!-- Welcome Back Message -->
+  <div id="welcomeMsg" class="text-center text-green-600 font-semibold text-xl mb-4 hidden">
+    Welcome back!
+  </div>
+
+  <!-- Feedback Form -->
+  <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold mb-4 text-center">Guest Lecture Feedback</h2>
+    <form id="feedbackForm" class="space-y-4">
+      <input type="text" id="fullName" placeholder="Full Name" required
+             class="w-full px-4 py-2 border border-gray-300 rounded-md" />
+      
+      <input type="email" id="email" placeholder="Email" required
+             class="w-full px-4 py-2 border border-gray-300 rounded-md" />
+      
+      <select id="department" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-md">
+        <option value="">Select Department</option>
+        <option>Computer Science</option>
+        <option>Commerce</option>
+        <option>Humanities</option>
+        <option>Management</option>
+      </select>
+
+      <div class="flex items-center gap-4">
+        <label class="font-semibold">Rating:</label>
+        <div id="ratingGroup" class="flex gap-2">
+          <label><input type="radio" name="rating" value="1" required> 1</label>
+          <label><input type="radio" name="rating" value="2"> 2</label>
+          <label><input type="radio" name="rating" value="3"> 3</label>
+          <label><input type="radio" name="rating" value="4"> 4</label>
+          <label><input type="radio" name="rating" value="5"> 5</label>
+        </div>
+      </div>
+
+      <div>
+        <textarea id="comments" rows="4" placeholder="Additional Comments"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-md"></textarea>
+        <p class="text-sm text-gray-500 mt-1">Characters: <span id="charCount">0</span></p>
+      </div>
+
+      <div class="flex justify-between">
+        <button type="submit"
+                class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Submit</button>
+        <button type="button" id="clearFeedbacks"
+                class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Clear All</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Feedback Cards -->
+  <div id="feedbackContainer" class="max-w-4xl mx-auto mt-8 space-y-4"></div>
+
+  <!-- JavaScript -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("feedbackForm");
+      const feedbackContainer = document.getElementById("feedbackContainer");
+      const charCount = document.getElementById("charCount");
+      const commentsBox = document.getElementById("comments");
+      const clearBtn = document.getElementById("clearFeedbacks");
+      const welcomeMsg = document.getElementById("welcomeMsg");
+
+      // Show welcome message for same session
+      if (!sessionStorage.getItem("visited")) {
+        sessionStorage.setItem("visited", "true");
+      } else {
+        welcomeMsg.classList.remove("hidden");
+      }
+
+      // Update char count in real-time
+      commentsBox.addEventListener("input", () => {
+        charCount.textContent = commentsBox.value.length;
+      });
+
+      // Load existing feedbacks
+      const loadFeedbacks = () => {
+        feedbackContainer.innerHTML = "";
+        const feedbacks = JSON.parse(localStorage.getItem("feedbacks")) || [];
+        feedbacks.forEach((fb, index) => {
+          const card = document.createElement("div");
+          card.className = "bg-white shadow-md rounded-xl p-4";
+          card.innerHTML = `
+            <h3 class="font-bold text-lg text-gray-800">${fb.name}</h3>
+            <p class="text-sm text-gray-500">${fb.email} | ${fb.department}</p>
+            <p class="mt-2"><strong>Rating:</strong> ${fb.rating}</p>
+            <p><strong>Comments:</strong> ${fb.comments}</p>
+          `;
+          feedbackContainer.appendChild(card);
+        });
+      };
+
+      // Submit handler
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const feedback = {
+          name: form.fullName.value,
+          email: form.email.value,
+          department: form.department.value,
+          rating: form.rating.value,
+          comments: form.comments.value.trim()
+        };
+
+        let feedbacks = JSON.parse(localStorage.getItem("feedbacks")) || [];
+        feedbacks.push(feedback);
+        localStorage.setItem("feedbacks", JSON.stringify(feedbacks));
+
+        form.reset();
+        charCount.textContent = 0;
+        loadFeedbacks();
+      });
+
+      // Clear feedbacks
+      clearBtn.addEventListener("click", () => {
+        localStorage.removeItem("feedbacks");
+        loadFeedbacks();
+      });
+
+      // Initial load
+      loadFeedbacks();
+    });
+  </script>
+</body>
+</html>
